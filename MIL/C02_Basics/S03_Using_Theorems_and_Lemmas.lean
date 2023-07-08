@@ -44,7 +44,13 @@ example (x : ℝ) : x ≤ x :=
 
 -- Try this.
 example (h₀ : a ≤ b) (h₁ : b < c) (h₂ : c ≤ d) (h₃ : d < e) : a < e := by
-  sorry
+  apply lt_of_le_of_lt
+  . exact h₀
+  . have h₄ : b < d := by
+      exact lt_of_lt_of_le h₁ h₂
+    apply lt_trans
+    . exact h₄
+    . exact h₃
 
 example (h₀ : a ≤ b) (h₁ : b < c) (h₂ : c ≤ d) (h₃ : d < e) : a < e := by
   linarith
@@ -86,22 +92,35 @@ example (h₀ : a ≤ b) (h₁ : c < d) : a + exp c + e < b + exp d + e := by
     apply exp_lt_exp.mpr h₁
   apply le_refl
 
-example (h₀ : d ≤ e) : c + exp (a + d) ≤ c + exp (a + e) := by sorry
+example (h₀ : d ≤ e) : c + exp (a + d) ≤ c + exp (a + e) := by
+  apply add_le_add_left
+  apply exp_le_exp.mpr
+  apply add_le_add_left
+  assumption
 
 example : (0 : ℝ) < 1 := by norm_num
 
 example (h : a ≤ b) : log (1 + exp a) ≤ log (1 + exp b) := by
-  have h₀ : 0 < 1 + exp a := by sorry
-  have h₁ : 0 < 1 + exp b := by sorry
+  have h₀ : 0 < 1 + exp a := by
+    apply add_pos
+    . norm_num
+    . exact exp_pos a
+  have h₁ : 0 < 1 + exp b := by
+    apply add_pos
+    . norm_num
+    . exact exp_pos b
   apply (log_le_log h₀ h₁).mpr
-  sorry
+  apply add_le_add_left
+  exact exp_le_exp.mpr h
 
 example : 0 ≤ a ^ 2 := by
-  -- library_search
+  -- library_search  -- Try this: exact sq_nonneg a
   exact sq_nonneg a
 
 example (h : a ≤ b) : c - exp b ≤ c - exp a := by
-  sorry
+  apply sub_le_sub_left
+  apply exp_le_exp.mpr
+  assumption
 
 example : 2 * a * b ≤ a ^ 2 + b ^ 2 := by
   have h : 0 ≤ a ^ 2 - 2 * a * b + b ^ 2
@@ -116,15 +135,34 @@ example : 2 * a * b ≤ a ^ 2 + b ^ 2 := by
     _ = a ^ 2 + b ^ 2 := by ring
 
 
-example : 2 * a * b ≤ a ^ 2 + b ^ 2 := by
+theorem twice_prod_le_squares : 2 * a * b ≤ a ^ 2 + b ^ 2 := by
   have h : 0 ≤ a ^ 2 - 2 * a * b + b ^ 2
   calc
     a ^ 2 - 2 * a * b + b ^ 2 = (a - b) ^ 2 := by ring
     _ ≥ 0 := by apply pow_two_nonneg
   linarith
 
-example : abs (a * b) ≤ (a ^ 2 + b ^ 2) / 2 := by
-  sorry
+theorem abs_prod_le_squares : abs (a * b) ≤ (a ^ 2 + b ^ 2) / 2 := by
+  apply abs_le'.mpr
+  constructor
+  case left =>
+    rw [le_div_iff, mul_comm, ← mul_assoc 2 a b]
+    exact twice_prod_le_squares a b
+    norm_num
+  case right =>
+    have h : 0 ≤ a^2 + b^2 + 2*a*b :=
+      calc
+        0 ≤ (a + b)^2 := sq_nonneg _
+        _ ≤ a^2 + b^2 + 2*a*b := by linarith
+    have h2 : 0 - (2*a*b) ≤ a^2 + b^2 := by
+      apply sub_left_le_of_le_add
+      rw [add_comm]
+      assumption
+    rw [zero_sub, mul_assoc, neg_mul_eq_neg_mul, neg_mul_comm] at h2
+    -- h2 : 2 * -(a * b) ≤ a ^ 2 + b ^ 2
+    rw [le_div_iff, mul_comm]
+    assumption
+    norm_num
 
-#check abs_le'.mpr
+#check abs_le'
 
