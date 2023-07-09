@@ -111,6 +111,15 @@ end
 section
 variable (w x y z : ℕ)
 
+#check x ∣ y
+
+example : x ∣ y ↔ (∃ (c : Nat), y = x * c) := by
+  constructor
+  . intro
+    assumption
+  . intro
+    assumption
+
 example (h₀ : x ∣ y) (h₁ : y ∣ z) : x ∣ z :=
   dvd_trans h₀ h₁
 
@@ -122,7 +131,13 @@ example : x ∣ x ^ 2 := by
    apply dvd_mul_left
 
 example (h : x ∣ w) : x ∣ y * (x * z) + x ^ 2 + w ^ 2 := by
-  sorry
+  apply dvd_add
+  apply dvd_add
+  . apply dvd_mul_of_dvd_right
+    apply dvd_mul_right
+  . apply dvd_mul_left
+  . apply dvd_mul_of_dvd_right
+    assumption
 
 end
 
@@ -136,7 +151,7 @@ open Nat
 #check (lcm_zero_left n : lcm 0 n = 0)
 
 example : gcd m n = gcd n m := by
-  sorry
+  apply gcd_comm
 
 end
 
